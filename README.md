@@ -2,7 +2,7 @@
 
 ## Project Outline
 
-### roject Title: Spending Across The 2010’s
+### Project Title: Spending Across The 2010’s
 
 Our Course Project is to visualize and understand changes in consumer spending behaviours over the course of a year and during periods of economic instability, extract
 Data Set: https://www.kaggle.com/datasets/computingvictor/transactions-fraud-datasets For 2009 -> 2019
