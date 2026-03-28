@@ -37,7 +37,7 @@ CREATE TABLE transactions_data (
 COPY transactions_data FROM '/docker/data/transactions_data.csv' DELIMITER ',' CSV HEADER;
 
 -- 3
-CREATE TABLE cards_data1 (
+CREATE TABLE cards_data (
   id INT PRIMARY KEY,
   client_id INT,
   card_brand TEXT,

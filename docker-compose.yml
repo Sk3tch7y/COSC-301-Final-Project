@@ -11,7 +11,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql #saved changes for postgres using volumes.
       - ../proj_data/archive:/docker/data # IMPORTANT!!! Please change path to your own "archive" folder. Mine is located ../proj_data/archive 
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql #runs init
     
 volumes:
   pgdata: 
