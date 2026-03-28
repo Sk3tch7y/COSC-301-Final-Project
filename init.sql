@@ -1,5 +1,3 @@
-\set DATA_PATH '/docker/data'
-
 -- 1
 CREATE TABLE clients_data (
   id INT PRIMARY KEY,
@@ -20,26 +18,9 @@ CREATE TABLE clients_data (
 COPY clients_data FROM '/docker/data/users_data.csv' DELIMITER ',' CSV HEADER;
 
 -- 2
-CREATE TABLE transactions_data (
-  id BIGINT PRIMARY KEY,
-  transaction_date TIMESTAMP,
-  client_id INT,
-  card_id INT,
-  amount MONEY,
-  use_chip TEXT,
-  merchant_id INT,
-  merchant_city TEXT,
-  merchant_state TEXT,
-  zip TEXT,
-  mcc INT,
-  errors TEXT
-);
-COPY transactions_data FROM '/docker/data/transactions_data.csv' DELIMITER ',' CSV HEADER;
-
--- 3
 CREATE TABLE cards_data (
   id INT PRIMARY KEY,
-  client_id INT,
+  client_id INT REFERENCES clients_data(id),
   card_brand TEXT,
   card_type TEXT,
   card_number TEXT,            
@@ -52,4 +33,21 @@ CREATE TABLE cards_data (
   year_pin_last_changed INT,
   card_on_dark_web BOOLEAN
 );
-COPY cards_data1 FROM '/docker/data/cards_data.csv' DELIMITER ',' CSV HEADER;
+COPY cards_data FROM '/docker/data/cards_data.csv' DELIMITER ',' CSV HEADER;
+
+-- 3
+CREATE TABLE transactions_data (
+  id BIGINT PRIMARY KEY,
+  transaction_date TIMESTAMP,
+  client_id INT REFERENCES clients_data(id),
+  card_id INT REFERENCES cards_data(id),
+  amount MONEY,
+  use_chip TEXT,
+  merchant_id INT,
+  merchant_city TEXT,
+  merchant_state TEXT,
+  zip TEXT,
+  mcc INT,
+  errors TEXT
+);
+COPY transactions_data FROM '/docker/data/transactions_data.csv' DELIMITER ',' CSV HEADER;
