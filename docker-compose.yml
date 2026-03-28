@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: cosc_301_proj_postgres_1
+    environment:
+      POSTGRES_PASSWORD: other_pw
+    ports:
+      - "5431:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql #saved changes for postgres using volumes.
+      - ../proj_data/archive:/docker/data # IMPORTANT!!! Please change path to your own "archive" folder. Mine is located ../proj_data/archive 
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    
+volumes:
+  pgdata: 
