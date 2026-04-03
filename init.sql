@@ -1,3 +1,4 @@
+
 -- 1
 CREATE TABLE clients_data (
   id INT PRIMARY KEY,
@@ -15,7 +16,6 @@ CREATE TABLE clients_data (
   credit_score INT,
   num_credit_cards INT
 );
-COPY clients_data FROM '/docker/data/users_data.csv' DELIMITER ',' CSV HEADER;
 
 -- 2
 CREATE TABLE cards_data (
@@ -33,7 +33,7 @@ CREATE TABLE cards_data (
   year_pin_last_changed INT,
   card_on_dark_web BOOLEAN
 );
-COPY cards_data FROM '/docker/data/cards_data.csv' DELIMITER ',' CSV HEADER;
+
 
 -- 3
 CREATE TABLE transactions_data (
@@ -50,4 +50,3 @@ CREATE TABLE transactions_data (
   mcc INT,
   errors TEXT
 );
-COPY transactions_data FROM '/docker/data/transactions_data.csv' DELIMITER ',' CSV HEADER;
