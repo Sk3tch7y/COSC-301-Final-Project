@@ -48,7 +48,7 @@ def clean_data():
         user="postgres",
         password="other_pw",
         host="localhost",
-        port="5431",
+        port="5432",
     )
 
     cur = conn.cursor()
@@ -170,7 +170,7 @@ def normalize_month_year(date_str):
     for fmt in ("%m/%Y", "%Y-%m", "%m-%Y"):
         try:
             dt = datetime.strptime(date_str, fmt)
-            return dt.strftime("%Y-%m")
+            return dt.strftime("%Y-%m-%d %H:%M:%S")
         except Exception:
             continue
     return None

@@ -41,8 +41,8 @@ Used to store and manage our cleaned data, allowing for efficient queries across
 **Python**  
 Used to clean our data and perform data analysis. Python has financial analysis libraries making it ideal for our project.
 
-**Excel**  
-Used for our final report and visualization. Paired with our use of Python, will make it easy to visualize and analyze our data further.
+**Tableau**  
+Used for our final report and visualization. Paired with our use of Python, will make it easy to visualize and analyze our data further after filtering and cleaning of data.
 
 ## Data Pipeline
 
@@ -71,6 +71,8 @@ The source dataset is licensed under the Apache 2.0 conditions, meaning we are f
 
 # Project Setup:
 
+## 1. Install dependencies and start virtual environment
+
 Mac:
 
 ```{sh}
@@ -90,3 +92,38 @@ venv\Scripts\activate
 pip install -r requirements.txt
 
 ```
+
+## 2. Install and start the docker engine:
+
+```
+https://docs.docker.com/engine/install/
+```
+
+## 3. Run the main.py file
+
+```
+    python main.py
+```
+
+Wait for it to complete. If interrupted delete the docker container and volume and restart
+
+## 4. Install Tableau Desktop: [here](https://www.tableau.com/support/releases)
+
+## 5. Open "report_visualizations.twb" in Tableau:
+
+If the file doesnt connect to the container automatically, configure the connection with the following:
+
+URL: jdbc:postgresql://127.0.0.1:5432/financial_data
+Dialect: PostgreSQL
+User: postgres
+password: other_pw
+
+Reports should automatically populate
+
+### To access database manually use commands:
+
+docker exec -it cosc_301_proj_postgres_1 bash
+
+### then:
+
+psql -h localhost -p 5432 -U postgres -d financial_data
