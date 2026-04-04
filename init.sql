@@ -10,9 +10,9 @@ CREATE TABLE clients_data (
   address TEXT,
   latitude NUMERIC(8,5),
   longitude NUMERIC(8,5),
-  per_capita_income MONEY,
-  yearly_income MONEY,
-  total_debt MONEY,
+  per_capita_income FLOAT,
+  yearly_income FLOAT,
+  total_debt FLOAT,
   credit_score INT,
   num_credit_cards INT
 );
@@ -24,12 +24,12 @@ CREATE TABLE cards_data (
   card_brand TEXT,
   card_type TEXT,
   card_number TEXT,            
-  expires VARCHAR(7),
+  expires TIMESTAMP,
   cvv TEXT,                    
   has_chip BOOLEAN,
   num_cards_issued INT,
-  credit_limit MONEY,
-  acct_open_date VARCHAR(7),
+  credit_limit FLOAT,
+  acct_open_date TIMESTAMP,
   year_pin_last_changed INT,
   card_on_dark_web BOOLEAN
 );
@@ -41,7 +41,7 @@ CREATE TABLE transactions_data (
   transaction_date TIMESTAMP,
   client_id INT REFERENCES clients_data(id),
   card_id INT REFERENCES cards_data(id),
-  amount MONEY,
+  amount FLOAT,
   use_chip TEXT,
   merchant_id INT,
   merchant_city TEXT,
