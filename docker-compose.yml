@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
     postgres:
         image: postgres:latest
@@ -7,6 +5,7 @@ services:
         environment:
             POSTGRES_PASSWORD: other_pw
             POSTGRES_DB: financial_data
+            POSTGRES_HOST_AUTH_METHOD: trust
         ports:
             - "5432:5432"
         volumes:

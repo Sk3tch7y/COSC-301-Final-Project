@@ -93,19 +93,26 @@ pip install -r requirements.txt
 
 ```
 
-## 2. Install and start the docker engine:
+## 2. Install Docker Desktop and make sure it is running:
 
 ```
 https://docs.docker.com/engine/install/
+
+docker-compose up -d
 ```
 
 ## 3. Run the main.py file
 
 ```
-    python main.py
+python main.py
 ```
+Wait for it to complete. If the setup is interrupted, remove the container and volume and restart:
 
-Wait for it to complete. If interrupted delete the docker container and volume and restart
+```sh
+docker-compose down -v
+docker-compose up -d
+python main.py
+```
 
 ## 4. Install Tableau Desktop: [here](https://www.tableau.com/support/releases)
 
