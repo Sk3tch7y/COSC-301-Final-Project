@@ -83,11 +83,11 @@ pip install -r requirements.txt
 
 ```
 
-Windows:
+Windows: 
 
 ```{sh}
 
-python3 -m venv venv
+python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 
@@ -108,7 +108,7 @@ python main.py
 ```
 Wait for it to complete. If the setup is interrupted, remove the container and volume and restart:
 
-```sh
+```{sh}
 docker-compose down -v
 docker-compose up -d
 python main.py
