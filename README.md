@@ -1,5 +1,5 @@
 # COSC 301 Final Project Proposal
-
+Video Demo: https://drive.google.com/file/d/1h0ygxm1gmkvINDgH2X-oAUXu41eEDhjl/view?usp=drive_link 
 ## Project Background
 
 Understanding spending behavior is important for businesses to remain competitive within the economic market. Analyzing when customers spend the most, their preferred transaction methods, and how spending varies across age groups can provide insights into financial trends and decision-making patterns. Following the financial recession, the 2010s provided insights into a period of economic recovery, during which customer spending began recovering. At the same time, advancements in technology led to a significant increase in online transactions and digital payment methods. These changes have reshaped how customers spend and manage their finances. By studying transaction data across this period, this project aims to better understand seasonal spending patterns, long-term trends, and demographic differences in financial behavior among age groups.
@@ -62,6 +62,64 @@ Used for our final report and visualization. Paired with our use of Python, will
 
 5. Reporting  
    Create visuals (graphs/dashboards) on Excel.
+
+## Data Dictionary
+
+This project stores cleaned data in PostgreSQL using three tables. Cleaning steps include stripping currency symbols/commas, normalizing month-year strings to timestamps, coercing numeric types, and converting empty or "none" values to NULL.
+
+### clients_data
+
+| Field | Type | Description / Transformations |
+| --- | --- | --- |
+| id | INT | Client identifier from source. |
+| current_age | INT | Current age in years; coerced to int. |
+| retirement_age | INT | Reported retirement age; coerced to int. |
+| birth_year | INT | Birth year; coerced to int. |
+| birth_month | INT | Birth month; coerced to int. |
+| gender | TEXT | Gender label; trimmed. |
+| address | TEXT | Mailing address; trimmed. |
+| latitude | NUMERIC(8,5) | Latitude; coerced to float. |
+| longitude | NUMERIC(8,5) | Longitude; coerced to float. |
+| per_capita_income | FLOAT | Per-capita income; "$" and commas removed, coerced to float. |
+| yearly_income | FLOAT | Yearly income; "$" and commas removed, coerced to float. |
+| total_debt | FLOAT | Total debt; "$" and commas removed, coerced to float. |
+| credit_score | INT | Credit score; coerced to int. |
+| num_credit_cards | INT | Number of credit cards; coerced to int. |
+
+### cards_data
+
+| Field | Type | Description / Transformations |
+| --- | --- | --- |
+| id | INT | Card identifier from source. |
+| client_id | INT | Foreign key to clients_data.id. |
+| card_brand | TEXT | Brand (e.g., Visa); trimmed. |
+| card_type | TEXT | Card type (e.g., debit/credit); trimmed. |
+| card_number | TEXT | Tokenized card number; stored as text. |
+| expires | TIMESTAMP | Expiration month/year; normalized to YYYY-MM-DD timestamp when possible. |
+| cvv | TEXT | CVV value; stored as text. |
+| has_chip | BOOLEAN | Parsed from text (true/false/1/0). |
+| num_cards_issued | INT | Cards issued count; coerced to int. |
+| credit_limit | FLOAT | Credit limit; "$" and commas removed, coerced to float. |
+| acct_open_date | TIMESTAMP | Account open month/year; normalized to YYYY-MM-DD timestamp when possible. |
+| year_pin_last_changed | INT | Year PIN last changed; coerced to int. |
+| card_on_dark_web | BOOLEAN | Parsed from text (true/false/1/0). |
+
+### transactions_data
+
+| Field | Type | Description / Transformations |
+| --- | --- | --- |
+| id | BIGINT | Transaction identifier from source. |
+| transaction_date | TIMESTAMP | Transaction date; parsed to timestamp when present. |
+| client_id | INT | Foreign key to clients_data.id. |
+| card_id | INT | Foreign key to cards_data.id. |
+| amount | FLOAT | Transaction amount; "$" and commas removed, coerced to float. |
+| use_chip | TEXT | Transaction method (swipe/chip/online); trimmed. |
+| merchant_id | INT | Merchant identifier; coerced to int when possible. |
+| merchant_city | TEXT | Merchant city; trimmed. |
+| merchant_state | TEXT | Merchant state; trimmed. |
+| zip | TEXT | Merchant ZIP/postal code; trimmed. |
+| mcc | INT | Merchant category code; coerced to int. |
+| errors | TEXT | Error codes/details; trimmed. |
 
 ## Ethics and Considerations
 

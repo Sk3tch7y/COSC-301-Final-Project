@@ -3,6 +3,7 @@ from pathlib import Path
 from data_cleaning import clean_data
 from data_download import download_file
 from data_filtering import filter_data
+from eda import run_eda
 from project_setup import setup_project
 
 
@@ -24,6 +25,8 @@ def main():
         return
     print("cleaning data and updating database")
     clean_data()
+    print("running EDA")
+    run_eda()
 
 
 main()
