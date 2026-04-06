@@ -1,4 +1,3 @@
-import imp
 from pathlib import Path
 
 from data_cleaning import clean_data
@@ -9,7 +8,9 @@ from project_setup import setup_project
 
 def main():
     print("Starting project setup")
-    setup_project()
+    if not setup_project():
+        print("Project setup failed")
+        return
     print("Attempting data download")
     download_file()
     if (

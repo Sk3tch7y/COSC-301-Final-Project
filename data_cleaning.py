@@ -1,35 +1,92 @@
 import csv
-import queue
-import threading
+import os
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
 import psycopg2 as pg
 from psycopg2.extras import execute_batch
 
+DB_NAME = os.getenv("POSTGRES_DB", "financial_data")
+DB_USER = os.getenv("POSTGRES_USER", "postgres")
+DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "other_pw")
+DB_HOST = os.getenv("POSTGRES_HOST", "127.0.0.1")
+DB_PORT = os.getenv("POSTGRES_PORT", "5432")
 
-def db_writer_thread(conn, query, data_queue, table_name):
-    """This thread runs constantly, taking batches from the queue and inserting them."""
-    # We create a separate cursor for this thread for thread-safety
-    cur = conn.cursor()
-    total = 0
 
-    while True:
-        batch = data_queue.get()
+def copy_transactions_data(conn):
+    temp_path = None
 
-        if batch is None:
-            data_queue.task_done()
-            break
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            newline="",
+            encoding="utf-8",
+            delete=False,
+            suffix=".csv",
+        ) as tmp:
+            temp_path = tmp.name
+            writer = csv.writer(tmp)
 
-        execute_batch(cur, query, batch)
+            with open("data/transactions_data.csv", newline="", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                count = 0
+
+                for row in reader:
+                    date_val = row["date"].strip()
+                    transaction_date_sql = date_val if date_val else r"\N"
+
+                    amount_val = row["amount"].replace("$", "").replace(",", "").strip()
+                    amount_val = (
+                        amount_val
+                        if amount_val and amount_val.lower() != "none"
+                        else r"\N"
+                    )
+
+                    id_val = row["id"].strip()
+                    client_id_val = row["client_id"].strip()
+                    card_id_val = row["card_id"].strip()
+                    merchant_id_val = row["merchant_id"].strip()
+                    mcc_val = row["mcc"].strip()
+
+                    writer.writerow([
+                        id_val if id_val and id_val.lower() != "none" else r"\N",
+                        transaction_date_sql,
+                        client_id_val if client_id_val and client_id_val.lower() != "none" else r"\N",
+                        card_id_val if card_id_val and card_id_val.lower() != "none" else r"\N",
+                        amount_val,
+                        row["use_chip"].strip() if row["use_chip"].strip() else r"\N",
+                        merchant_id_val if merchant_id_val and merchant_id_val.lower() != "none" else r"\N",
+                        row["merchant_city"].strip() if row["merchant_city"].strip() else r"\N",
+                        row["merchant_state"].strip() if row["merchant_state"].strip() else r"\N",
+                        row["zip"].strip() if row["zip"].strip() else r"\N",
+                        mcc_val if mcc_val and mcc_val.lower() != "none" else r"\N",
+                        row["errors"].strip() if row["errors"].strip() else r"\N",
+                    ])
+
+                    count += 1
+                    if count % 500000 == 0:
+                        print(f"[Transactions] Prepared {count}/13305915 rows for COPY")
+
+        with conn.cursor() as cur, open(temp_path, "r", encoding="utf-8") as tmp_read:
+            copy_sql = """
+                COPY transactions_data (
+                    id, transaction_date, client_id, card_id, amount, use_chip,
+                    merchant_id, merchant_city, merchant_state, zip, mcc, errors
+                )
+                FROM STDIN WITH (
+                    FORMAT csv,
+                    NULL '\\N'
+                )
+            """
+            cur.copy_expert(copy_sql, tmp_read)
+
         conn.commit()
+        print("[Transactions] COPY complete.")
 
-        total += len(batch)
-        print(f"[{table_name}] Committed {total}/13305915 rows")
-        data_queue.task_done()
-
-    cur.close()
-    print(f"[{table_name}] Finished! Total committed: {total} rows.")
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
 
 
 def clean_data():
@@ -41,14 +98,12 @@ def clean_data():
         print("Data Missing")
         return
 
-    # setup database connection:
-
     conn = pg.connect(
-        dbname="financial_data",
-        user="postgres",
-        password="other_pw",
-        host="localhost",
-        port="5432",
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        host=DB_HOST,
+        port=DB_PORT,
     )
 
     cur = conn.cursor()
@@ -57,7 +112,7 @@ def clean_data():
     cur.execute("SELECT COUNT(*) FROM clients_data;")
     result = cur.fetchone()
     if result is not None and result[0] == 0:
-        with open("data/users_data.csv") as f:
+        with open("data/users_data.csv", newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             cleaned_data = (clean_clients_data_row(row) for row in reader)
             execute_batch(
@@ -74,8 +129,10 @@ def clean_data():
                 );
                 """,
                 cleaned_data,
-                page_size=1000,
+                page_size=5000,
             )
+        conn.commit()
+        print("clients_data load complete.")
     else:
         print("clients_data already has rows, skipping users_data.csv")
 
@@ -83,7 +140,7 @@ def clean_data():
     cur.execute("SELECT COUNT(*) FROM cards_data;")
     result = cur.fetchone()
     if result is not None and result[0] == 0:
-        with open("data/cards_data.csv") as f:
+        with open("data/cards_data.csv", newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             cleaned_data = (clean_cards_data_row(row) for row in reader)
             execute_batch(
@@ -98,8 +155,10 @@ def clean_data():
                 );
                 """,
                 cleaned_data,
-                page_size=5000,
+                page_size=10000,
             )
+        conn.commit()
+        print("cards_data load complete.")
     else:
         print("cards_data already has rows, skipping cards_data.csv")
 
@@ -107,43 +166,12 @@ def clean_data():
     cur.execute("SELECT COUNT(*) FROM transactions_data;")
     result = cur.fetchone()
     if result is not None and result[0] == 0:
-        print("Starting threaded insert for transactions_data...")
-
-        query = """
-            INSERT INTO transactions_data (
-                id, transaction_date, client_id, card_id, amount, use_chip, merchant_id,
-                merchant_city, merchant_state, zip, mcc, errors
-            ) VALUES (
-                %(id)s, %(transaction_date)s, %(client_id)s, %(card_id)s, %(amount)s, %(use_chip)s, %(merchant_id)s,
-                %(merchant_city)s, %(merchant_state)s, %(zip)s, %(mcc)s, %(errors)s
-            );
-        """
-
-        data_queue = queue.Queue(maxsize=5)
-        writer = threading.Thread(
-            target=db_writer_thread, args=(conn, query, data_queue, "Transactions")
-        )
-        writer.start()
-
-        with open("data/transactions_data.csv") as f:
-            reader = csv.DictReader(f)
-            batch = []
-
-            for row in reader:
-                batch.append(clean_transactions_data_row(row))
-                if len(batch) >= 10000:
-                    data_queue.put(batch)
-                    batch = []
-
-            if batch:
-                data_queue.put(batch)
-        data_queue.put(None)
-        writer.join()
+        print("Starting COPY load for transactions_data...")
+        copy_transactions_data(conn)
     else:
         print("transactions_data already has rows, skipping transactions_data.csv")
 
     cur.close()
-    conn.commit()
     conn.close()
 
 
@@ -177,7 +205,6 @@ def normalize_month_year(date_str):
 
 
 def clean_clients_data_row(row):
-    # print("Original clients_data row:", row)
     cleaned = {
         "id": sql_int(row["id"]),
         "current_age": sql_int(row["current_age"]),
@@ -198,12 +225,10 @@ def clean_clients_data_row(row):
         "credit_score": sql_int(row["credit_score"]),
         "num_credit_cards": sql_int(row["num_credit_cards"]),
     }
-    # print("Cleaned clients_data entry:", cleaned)
     return cleaned
 
 
 def clean_cards_data_row(row):
-    # print("Original cards_data row:", row)
     cleaned = {
         "id": sql_int(row["id"]),
         "client_id": sql_int(row["client_id"]),
@@ -225,33 +250,4 @@ def clean_cards_data_row(row):
             row["card_on_dark_web"].strip().lower() in ("true", "1", "t", "yes")
         ),
     }
-    # print("Cleaned cards_data entry:", cleaned)
-    return cleaned
-
-
-def clean_transactions_data_row(row):
-    # print("Original transactions_data row:", row)
-    # Parse timestamp
-    try:
-        transaction_date = datetime.strptime(row["date"].strip(), "%Y-%m-%d %H:%M:%S")
-        transaction_date_sql = transaction_date.strftime("%Y-%m-%d %H:%M:%S")
-    except Exception as e:
-        print(f"Date parsing failed for {row.get('date')}: {e}")
-        transaction_date_sql = None
-
-    cleaned = {
-        "id": sql_int(row["id"]),
-        "transaction_date": transaction_date_sql,
-        "client_id": sql_int(row["client_id"]),
-        "card_id": sql_int(row["card_id"]),
-        "amount": sql_float(row["amount"].replace("$", "").replace(",", "")),
-        "use_chip": row["use_chip"].strip(),
-        "merchant_id": sql_int(row["merchant_id"]),
-        "merchant_city": row["merchant_city"].strip(),
-        "merchant_state": row["merchant_state"].strip(),
-        "zip": row["zip"].strip(),
-        "mcc": sql_int(row["mcc"]),
-        "errors": row["errors"].strip(),
-    }
-    # print("Cleaned transactions_data entry:", cleaned)
     return cleaned
