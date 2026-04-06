@@ -1,5 +1,5 @@
 # COSC 301 Final Project Proposal
-
+Video Demo: https://drive.google.com/file/d/1h0ygxm1gmkvINDgH2X-oAUXu41eEDhjl/view?usp=drive_link 
 ## Project Background
 
 Understanding spending behavior is important for businesses to remain competitive within the economic market. Analyzing when customers spend the most, their preferred transaction methods, and how spending varies across age groups can provide insights into financial trends and decision-making patterns. Following the financial recession, the 2010s provided insights into a period of economic recovery, during which customer spending began recovering. At the same time, advancements in technology led to a significant increase in online transactions and digital payment methods. These changes have reshaped how customers spend and manage their finances. By studying transaction data across this period, this project aims to better understand seasonal spending patterns, long-term trends, and demographic differences in financial behavior among age groups.
