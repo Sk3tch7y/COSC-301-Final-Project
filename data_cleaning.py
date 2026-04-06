@@ -14,6 +14,16 @@ DB_HOST = os.getenv("POSTGRES_HOST", "127.0.0.1")
 DB_PORT = os.getenv("POSTGRES_PORT", "5432")
 
 
+def ensure_schema(conn):
+    init_sql_path = Path(__file__).with_name("init.sql")
+    with open(init_sql_path, "r", encoding="utf-8") as f:
+        schema_sql = f.read()
+
+    with conn.cursor() as cur:
+        cur.execute(schema_sql)
+    conn.commit()
+
+
 def copy_transactions_data(conn):
     temp_path = None
 
@@ -105,6 +115,8 @@ def clean_data():
         host=DB_HOST,
         port=DB_PORT,
     )
+
+    ensure_schema(conn)
 
     cur = conn.cursor()
 

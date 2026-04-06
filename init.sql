@@ -1,6 +1,6 @@
 
 -- 1
-CREATE TABLE clients_data (
+CREATE TABLE IF NOT EXISTS clients_data (
   id INT PRIMARY KEY,
   current_age INT,
   retirement_age INT,
@@ -18,7 +18,7 @@ CREATE TABLE clients_data (
 );
 
 -- 2
-CREATE TABLE cards_data (
+CREATE TABLE IF NOT EXISTS cards_data (
   id INT PRIMARY KEY,
   client_id INT REFERENCES clients_data(id),
   card_brand TEXT,
@@ -36,7 +36,7 @@ CREATE TABLE cards_data (
 
 
 -- 3
-CREATE TABLE transactions_data (
+CREATE TABLE IF NOT EXISTS transactions_data (
   id BIGINT PRIMARY KEY,
   transaction_date TIMESTAMP,
   client_id INT REFERENCES clients_data(id),
